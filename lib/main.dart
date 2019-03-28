@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
 
+
+class MyApp extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
     return MaterialApp(
-      title: 'Flutter navigation',
-      home:FirstScreen(),
+      title: 'Flutter UX demo',
+      home: AddMessageScreen(),
+
+//        MessageListScreen
     );
 
   }
@@ -47,6 +49,40 @@ class _MessageFormState extends State<MessageForm>{
       child:Row(
         children:<Widget>[
           // 我们让输入框占满一行里除按钮外的所有空间
+          Expanded(
+              child:Container(
+                margin: EdgeInsets.only(right:8.0),
+                child:TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Input message',
+                    contentPadding: EdgeInsets.all(0.0),
+                  ),
+                  style:TextStyle(
+                    fontSize: 22.0,
+                    color: Colors.black54
+                  ),
+                  controller: editController,
+                  // 自动获取焦点。这样在页面打开时就会自动弹出输入法
+                  autofocus:true,
+                ),
+              ),
+          ),
+          InkWell(
+            onTap: (){
+              debugPrint('send:${editController.text}');
+              Navigator.pop(context);
+            },
+            onDoubleTap: ()=> debugPrint('double tapped'),
+            onLongPress: ()=> debugPrint('long pressed'),
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 10.0,horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(5.0)
+              ),
+              child: Text('Send'),
+            ),
+          ),
 
 
         ],
@@ -56,26 +92,39 @@ class _MessageFormState extends State<MessageForm>{
   }
 }
 
-class SecondScreen extends StatefulWidget{
-  @override
-  State createState(){
-    return _SecondScreenState();
-  }
-}
 
-class _SecondScreenState extends State<SecondScreen>{
+
+class AddMessageScreen extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: Text('Navigation Demo'),),
-      body:Center(
-        child: RaisedButton(
-            child:Text('Second Screen'),
-            onPressed: (){
-              Navigator.pop(context,'message from second screen');
-            }
-        ),
-      ),
+      appBar: AppBar(title: Text('Add Message'),),
+      body:MessageForm(),
     );
   }
 }
+
+
+
+
+// 这是我们的消息展示页面
+
+
+class MessageListScreen extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(title: Text('Echo client'),),
+      floatingActionButton: FloatingActionButton(
+          onPressed: (){
+            // push 一个新的 route 到 Navigator 管理的栈中，以此来打开一个页面
+            Navigator.push(context, MaterialPageRoute(builder: (_)=>AddMessageScreen()));
+          },
+        tooltip: 'Add Message',
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+
+}
+
