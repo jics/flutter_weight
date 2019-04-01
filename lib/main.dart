@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context){
     return MaterialApp(
       title: 'Flutter UX demo',
-      home: AddMessageScreen(),
+      home: MessageListScreen(),
 
 //        MessageListScreen
     );
@@ -70,8 +70,20 @@ class _MessageFormState extends State<MessageForm>{
           InkWell(
             onTap: (){
               debugPrint('send:${editController.text}');
+              final msg=Message(
+                editController.text,
+                DateTime.now().millisecondsSinceEpoch
+              );
               Navigator.pop(context);
             },
+
+            floatingActionButton:FloatingActionButton(
+              onPressed: ()async{
+                final result=await Navigator.push(context,MaterialPageRoute(builder: (_)=>AddMessageScreen()));
+                debugPrint('result=$result');
+              },
+            ),
+
             onDoubleTap: ()=> debugPrint('double tapped'),
             onLongPress: ()=> debugPrint('long pressed'),
             child: Container(
@@ -104,12 +116,20 @@ class AddMessageScreen extends StatelessWidget{
   }
 }
 
+class Message{
+  final String msg;
+  final int timestamp;
+   Message(this.msg,this.timestamp);
+
+   @override
+  String tostring(){
+     return 'Message{msg:$msg,timestamp:$timestamp}';
+   }
+}
 
 
 
 // 这是我们的消息展示页面
-
-
 class MessageListScreen extends StatelessWidget{
   @override
   Widget build(BuildContext context){
