@@ -74,15 +74,10 @@ class _MessageFormState extends State<MessageForm>{
                 editController.text,
                 DateTime.now().millisecondsSinceEpoch
               );
-              Navigator.pop(context);
+              Navigator.pop(context,msg);
             },
 
-            floatingActionButton:FloatingActionButton(
-              onPressed: ()async{
-                final result=await Navigator.push(context,MaterialPageRoute(builder: (_)=>AddMessageScreen()));
-                debugPrint('result=$result');
-              },
-            ),
+
 
             onDoubleTap: ()=> debugPrint('double tapped'),
             onLongPress: ()=> debugPrint('long pressed'),
@@ -131,20 +126,70 @@ class Message{
 
 // 这是我们的消息展示页面
 class MessageListScreen extends StatelessWidget{
+  final messageListKey=GlobalKey<_MessageListState>(debugLabel:'messageListKey');
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(title: Text('Echo client'),),
+      body:MessageList(key:messageListKey),
       floatingActionButton: FloatingActionButton(
-          onPressed: (){
-            // push 一个新的 route 到 Navigator 管理的栈中，以此来打开一个页面
-            Navigator.push(context, MaterialPageRoute(builder: (_)=>AddMessageScreen()));
+          onPressed: ()async{
+            final result=await Navigator.push(context,MaterialPageRoute(builder: (_)=>AddMessageScreen()));
+            debugPrint('result=$result');
+            if(result is Message){
+              messageListKey.currentState.addMessage(result);
+            }
           },
+
+//          {
+//            // push 一个新的 route 到 Navigator 管理的栈中，以此来打开一个页面
+//            Navigator.push(context, MaterialPageRoute(builder: (_)=>AddMessageScreen()));
+//          },
         tooltip: 'Add Message',
         child: Icon(Icons.add),
       ),
     );
   }
 
+}
+
+
+
+class MessageList extends StatefulWidget{
+
+  MessageList({Key key}):super(key: key);
+
+  @override
+  State createState(){
+    return _MessageListState();
+  }
+
+}
+
+
+class _MessageListState extends State<MessageList>{
+  final List<Message> messages=[];
+  @override
+  Widget build(BuildContext context){
+    return ListView.builder(
+        itemCount: messages.length,
+        itemBuilder: (context,index){
+          final msg=messages[index];
+          final subtitle=DateTime.fromMicrosecondsSinceEpoch(msg.timestamp).toLocal().toIso8601String();
+          return ListTile(
+            title:Text(msg.msg),
+            subtitle:Text(subtitle),
+          );
+        }
+    );
+  }
+
+
+
+void addMessage(Message msg){
+  setState((){
+    messages.add(msg);
+  });}
 }
 
