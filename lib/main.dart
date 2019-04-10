@@ -1,195 +1,136 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:math' as math;
+import 'package:flutter/animation.dart';
 
 void main() => runApp(MyApp());
 
 
 
-class MyApp extends StatelessWidget{
-  @override
-  Widget build(BuildContext context){
-    return MaterialApp(
-      title: 'Flutter UX demo',
-      home: MessageListScreen(),
-
-//        MessageListScreen
-    );
-
-  }
-
-}
-
-
-
-class MessageForm extends StatefulWidget{
-  @override
-  State createState(){
-    return _MessageFormState();
-  }
-}
-
-
-class _MessageFormState extends State<MessageForm>{
-  final editController=TextEditingController();
-
-
-  // 对象被从 widget 树里永久移除的时候调用 dispose 方法（可以理解为对象要销毁了）
-  // 这里我们需要主动再调用 editController.dispose() 以释放资源
-  @override
-  void dispose(){
-     super.dispose();
-     editController.dispose();
-  }
-
-
+class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(16.0),
-      child:Row(
-        children:<Widget>[
-          // 我们让输入框占满一行里除按钮外的所有空间
-          Expanded(
-              child:Container(
-                margin: EdgeInsets.only(right:8.0),
-                child:TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Input message',
-                    contentPadding: EdgeInsets.all(0.0),
-                  ),
-                  style:TextStyle(
-                    fontSize: 22.0,
-                    color: Colors.black54
-                  ),
-                  controller: editController,
-                  // 自动获取焦点。这样在页面打开时就会自动弹出输入法
-                  autofocus:true,
-                ),
-              ),
-          ),
-          InkWell(
-            onTap: (){
-              debugPrint('send:${editController.text}');
-              final msg=Message(
-                editController.text,
-                DateTime.now().millisecondsSinceEpoch
-              );
-              Navigator.pop(context,msg);
-            },
-
-
-
-            onDoubleTap: ()=> debugPrint('double tapped'),
-            onLongPress: ()=> debugPrint('long pressed'),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 10.0,horizontal: 16.0),
-              decoration: BoxDecoration(
-                color: Colors.black12,
-                borderRadius: BorderRadius.circular(5.0)
-              ),
-              child: Text('Send'),
-            ),
-          ),
-
-
-        ],
-
-        ),
-      );
-  }
-}
-
-
-
-class AddMessageScreen extends StatelessWidget{
-  @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(title: Text('Add Message'),),
-      body:MessageForm(),
-    );
-  }
-}
-
-class Message{
-  final String msg;
-  final int timestamp;
-   Message(this.msg,this.timestamp);
-
-   @override
-  String tostring(){
-     return 'Message{msg:$msg,timestamp:$timestamp}';
-   }
-}
-
-
-
-// 这是我们的消息展示页面
-class MessageListScreen extends StatelessWidget{
-  final messageListKey=GlobalKey<_MessageListState>(debugLabel:'messageListKey');
-
-  @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(title: Text('Echo client'),),
-      body:MessageList(key:messageListKey),
-      floatingActionButton: FloatingActionButton(
-          onPressed: ()async{
-            final result=await Navigator.push(context,MaterialPageRoute(builder: (_)=>AddMessageScreen()));
-            debugPrint('result=$result');
-            if(result is Message){
-              messageListKey.currentState.addMessage(result);
-            }
-          },
-
-//          {
-//            // push 一个新的 route 到 Navigator 管理的栈中，以此来打开一个页面
-//            Navigator.push(context, MaterialPageRoute(builder: (_)=>AddMessageScreen()));
-//          },
-        tooltip: 'Add Message',
-        child: Icon(Icons.add),
+    return MaterialApp(
+      title: 'Flutter animation demo',
+      home: Scaffold(
+        appBar: AppBar(title: Text('Animation demo')),
+        body: AnimationDemoView(),
       ),
     );
   }
-
 }
 
 
 
-class MessageList extends StatefulWidget{
 
-  MessageList({Key key}):super(key: key);
 
-  @override
+
+class AnimationDemoView extends StatefulWidget{//动画是有状态的
+
   State createState(){
-    return _MessageListState();
+    return _AnimationState();
+  }
+}
+
+
+class _AnimationState extends State<AnimationDemoView> with SingleTickerProviderStateMixin{
+
+  static const padding=16.0;
+
+  AnimationController controller;
+  Animation<double> left;
+  Animation<Color> color;
+
+  void initState() {
+    super.initState();
+
+    // 只有在 initState 执行完，我们才能通过 MediaQuery.of(context) 获取
+    // mediaQueryData。这里通过创建一个 Future 从而在 Dart 事件队列里插入
+    // 一个事件，以达到延后执行的目的（类似于在 Android 里 post 一个 Runnable）
+    // 关于 Dart 的事件队列，读者可以参考 https://webdev.dartlang.org/articles/performance/event-loop
+    Future(_initState);
   }
 
-}
+
+  void _initState() {
+    controller = AnimationController(
+      //动画时长
+      duration: Duration(milliseconds: 2000),
+      //提供 vsync 最简单的方式，就是直接继承 SingleTickerProviderStateMixin
+      vsync: this,
+    );
 
 
-class _MessageListState extends State<MessageList>{
-  final List<Message> messages=[];
+    // 我们通过 MediaQuery 获取屏幕宽度
+    final mediaQueryData = MediaQuery.of(context);
+    final displayWidth = mediaQueryData.size.width;
+    debugPrint('with=$displayWidth');
+    left =
+    Tween(begin: padding, end: displayWidth - padding).animate(controller)
+      ..addListener(() {
+        // 调用 setState 触发他重新 build 一个 Widget。在 build 方法里，我们根据
+        // Animatable<T> 的当前值来创建 Widget，达到动画的效果（类似 Android 的属性动画）。
+        setState(() {
+          // have nothing to do
+        });
+      })
+    //监听动画状态变化
+      ..addStatusListener((status) {
+        //这里我们让动画重复执行
+
+        //一次动画执行完成
+        if (status == AnimationStatus.completed) {
+          // 我们让动画反正执行一遍
+          controller.reverse();
+        } else if (status == AnimationStatus.dismissed) { //反着执行结束
+          controller.forward();
+        }
+      });
+
+    color=ColorTween(begin: Colors.red,end:Colors.blue).animate(controller);
+    controller.forward();
+  }
+
   @override
   Widget build(BuildContext context){
-    return ListView.builder(
-        itemCount: messages.length,
-        itemBuilder: (context,index){
-          final msg=messages[index];
-          final subtitle=DateTime.fromMicrosecondsSinceEpoch(msg.timestamp).toLocal().toIso8601String();
-          return ListTile(
-            title:Text(msg.msg),
-            subtitle:Text(subtitle),
-          );
-        }
+    //假定一个单位是24
+    final unit=24.0;
+    final marginLeft=left==null?padding:left.value;
+
+    //把 marginLeft 单位化
+    final unitizedLeft=(marginLeft-padding)/unit;
+    final unitizedTop=math.sin(unitizedLeft);
+    //unitizedTop+1 是为了把[-1,1]之间的值映射到[0，2]
+    //(unitizedTop+1)*unit后把单位化的值转回来
+
+    final marginTop =(unitizedTop+1)*unit +padding;
+
+    final color =this.color==null?Colors.red:this.color.value;
+    return Container(
+      //根据动画进度设置圆点位置
+      margin: EdgeInsets.only(left: marginLeft,top: marginTop),
+      //画一个小红点
+      child:Container(
+        decoration: BoxDecoration(color: color,borderRadius: BorderRadius.circular(7.5)),
+        width: 15.0,
+        height: 15.0,
+      ),
+
     );
+
+
   }
 
 
 
-void addMessage(Message msg){
-  setState((){
-    messages.add(msg);
-  });}
+  @override
+  void dispose(){
+    super.dispose();
+    controller.dispose();
+  }
+
 }
+
+
 
